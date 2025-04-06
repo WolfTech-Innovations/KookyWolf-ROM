@@ -1,0 +1,60 @@
+name: Build KookyWolf ROM
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y bc bison build-essential curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libc6-dev-i386 libgl1-mesa-dev libncurses5 libncurses5-dev libssl-dev libx11-dev libxml2-utils lzop openjdk-11-jdk pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev wget
+
+      - name: Sync ROM source
+        run: |
+          repo init -u https://github.com/LineageOS/android.git -b lineage-21.0
+          repo sync -j$(nproc --all)
+
+      - name: Apply KookyWolf branding
+        run: |
+          # Rebrand build.prop
+          echo "ro.build.display.id=KookyWolf ROM" >> build/make/core/build_id.mk
+          echo "ro.build.version.incremental=kookywolf_$(date +%Y%m%d)" >> build/make/core/build_id.mk
+          echo "ro.modversion=KookyWolf-ROM" >> build/make/core/build_id.mk
+
+          # Replace About Phone strings
+          sed -i 's/About phone/About KookyWolf ROM/g' packages/apps/Settings/res/values/strings.xml || true
+          sed -i 's/LineageOS/KookyWolf ROM/g' packages/apps/Settings/res/values/strings.xml || true
+
+          # Replace system UI tuner name
+          sed -i 's/System UI Tuner/KookyWolf UI Tuner/g' frameworks/base/packages/SystemUI/res/values/strings.xml || true
+
+      - name: Download custom boot animation
+        run: |
+          mkdir -p vendor/bootanimation
+          wget -O vendor/bootanimation/bootanimation.zip https://xdaforums.com/attachments/bootanimation-zip.2986805/
+
+      - name: Add boot animation to ROM
+        run: |
+          # Ensure target product output dir exists
+          mkdir -p out/target/product/$(grep "PRODUCT_DEVICE" device/*/*/BoardConfig.mk | cut -d'=' -f2 | head -n1)/system/media
+          # Copy boot animation into the system media directory during build
+          echo "PRODUCT_COPY_FILES += vendor/bootanimation/bootanimation.zip:system/media/bootanimation.zip" >> device/*/*/device.mk
+
+      - name: Lunch and Build
+        run: |
+          source build/envsetup.sh
+          lunch lineage_<device>-userdebug
+          make -j$(nproc --all)
+
+      - name: Upload KookyWolf ROM
+        uses: actions/upload-artifact@v4
+        with:
+          name: KookyWolf-ROM
+          path: out/target/product/*/*.zip
