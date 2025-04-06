@@ -14,7 +14,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y bc bison build-essential curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32ncurses-dev lib32readline-dev lib32z1-dev libc6-dev-i386 libgl1-mesa-dev libncurses6 libncurses-dev libssl-dev libx11-dev libxml2-utils lzop openjdk-11-jdk pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev wget
+          sudo apt install -y bc bison build-essential curl flex g++-multilib gcc-multilib git gnupg repo gperf imagemagick lib32ncurses-dev lib32readline-dev lib32z1-dev libc6-dev-i386 libgl1-mesa-dev libncurses6 libncurses-dev libssl-dev libx11-dev libxml2-utils lzop openjdk-11-jdk pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev wget
 
       - name: Sync ROM source
         run: |
