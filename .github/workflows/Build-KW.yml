@@ -30,7 +30,7 @@ jobs:
           wsl git config --global user.name "WolfTech-Innovations"
           wsl echo "User: [SET]"
           wsl repo init -u https://github.com/BlissRoms-x86/manifest.git -b arcadia-x86 --git-lfs
-          wsl repo sync -c --force-sync --no-tags --no-clone-bundle -j4--optimized-fetch --prune
+          wsl repo sync -c --force-sync --no-tags --no-clone-bundle -j4 --optimized-fetch --prune
 
       - name: Apply KookyWolf OS branding and ChromeOS/FydeOS tweaks
         run: |
