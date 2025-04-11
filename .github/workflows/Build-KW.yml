@@ -26,7 +26,7 @@ jobs:
       - name: Sync ROM source
         run: |
           wsl repo init -u https://github.com/LineageOS/android.git -b lineage-21.0
-          wsl repo sync -j$(wsl nproc --all)
+          wsl repo sync
 
       - name: Apply KookyWolf branding
         run: |
