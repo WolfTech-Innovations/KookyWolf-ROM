@@ -1,3 +1,4 @@
+[![Build KookyWolf OS](https://github.com/WolfTech-Innovations/KookyWolf-ROM/actions/workflows/Build-KW.yml/badge.svg)](https://github.com/WolfTech-Innovations/KookyWolf-ROM/actions/workflows/Build-KW.yml)
 # KookyWolf OS Build
 
 This repository provides the build process for **KookyWolf OS**, a customized Android-x86-based operating system with ChromeOS/FydeOS-like features, branding, and a custom boot animation.
