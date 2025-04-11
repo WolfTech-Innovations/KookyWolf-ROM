@@ -24,11 +24,11 @@ jobs:
 
       - name: Sync Android-x86 source
         run: |
-          echo "Confirming Git Info . . ."
-          git config --global user.email "spoinkosgithub@gmail.com"
-          echo "Email: [SET]"
-          git config --global user.name "WolfTech-Innovations"
-          echo "User: [SET]"
+          wsl echo "Confirming Git Info . . ."
+          wsl git config --global user.email "spoinkosgithub@gmail.com"
+          wsl echo "Email: [SET]"
+          wsl git config --global user.name "WolfTech-Innovations"
+          wsl echo "User: [SET]"
           wsl repo init -u git://gitscm.sf.net/gitroot/android-x86/manifest -b pie-x86
           wsl repo sync --force-sync --no-tags --no-clone-bundle --depth=1 -j4
 
