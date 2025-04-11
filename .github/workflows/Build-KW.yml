@@ -24,7 +24,7 @@ jobs:
 
       - name: Sync Android-x86 source
         run: |
-          wsl repo init -u git://gitscm.sf.net/gitroot/android-x86/manifest -b pie-x86
+          wsl repo init -u git://gitscm.sf.net/gitroot/android-x86/manifest -b cm-14.1-x86
           wsl repo sync --force-sync --no-tags --no-clone-bundle -j1
 
       - name: Apply KookyWolf OS branding and ChromeOS/FydeOS tweaks
