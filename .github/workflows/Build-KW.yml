@@ -1,4 +1,4 @@
-name: Build KookyWolf ROM
+name: Build KookyWolf OS
 
 on:
   workflow_dispatch:
@@ -13,83 +13,74 @@ jobs:
 
       - name: Install WSL and Ubuntu
         run: |
-          
           wsl sudo apt update
-          wsl sudo apt install -y bc bison build-essential curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32ncurses-dev lib32readline-dev lib32z1-dev libc6-dev-i386 libgl1-mesa-dev libncurses6 libncurses-dev libssl-dev libx11-dev libxml2-utils lzop openjdk-11-jdk pngcrush rsync fastboot adb schedtool squashfs-tools xsltproc zip zlib1g-dev wget python3 python3-pip
+          wsl sudo apt install -y bc bison build-essential curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32ncurses-dev lib32readline-dev lib32z1-dev libc6-dev-i386 libgl1-mesa-dev libncurses6 libncurses-dev libssl-dev libx11-dev libxml2-utils lzop openjdk-11-jdk pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev wget python3 python3-pip
 
       - name: Install repo tool
         run: |
-          
           wsl curl https://storage.googleapis.com/git-repo-downloads/repo -o repo
           wsl chmod +x repo
           wsl sudo mv repo /usr/local/bin/
 
-      - name: Sync ROM source (PixelExperience base)
+      - name: Sync Android-x86 source
         run: |
-          
-          wsl repo init -u https://github.com/PixelExperience/manifest.git -b thirteen-plus
-          wsl repo sync --force-sync --no-tags --no-clone-bundle -j$(nproc --all)
+          wsl repo init -u https://github.com/android-x86/manifest.git -b pie-x86
+          wsl repo sync --force-sync --no-tags --no-clone-bundle -j1
 
-      - name: Apply KookyWolf branding and FydeOS/ChromeOS tweaks
+      - name: Apply KookyWolf OS branding and ChromeOS/FydeOS tweaks
         run: |
-          
-          wsl bash -c "echo 'ro.build.display.id=KookyWolf ROM' >> build/make/core/build_id.mk"
+          wsl bash -c "echo 'ro.build.display.id=KookyWolf OS' >> build/make/core/build_id.mk"
           wsl bash -c "echo 'ro.build.version.incremental=kookywolf_$(date +%Y%m%d)' >> build/make/core/build_id.mk"
-          wsl bash -c "echo 'ro.modversion=KookyWolf-ROM' >> build/make/core/build_id.mk"
-          wsl sed -i 's/About phone/About KookyWolf ROM/g' packages/apps/Settings/res/values/strings.xml || true
-          wsl sed -i 's/PixelExperience/KookyWolf ROM/g' packages/apps/Settings/res/values/strings.xml || true
-          wsl sed -i 's/System UI Tuner/KookyWolf UI Tuner/g' frameworks/base/packages/SystemUI/res/values/strings.xml || true
+          wsl bash -c "echo 'ro.modversion=KookyWolf-OS' >> build/make/core/build_id.mk"
+          wsl sed -i 's/About tablet/About KookyWolf OS/g' packages/apps/Settings/res/values/strings.xml || true
+          wsl sed -i 's/Android-x86/KookyWolf OS/g' packages/apps/Settings/res/values/strings.xml || true
           wsl git clone https://github.com/fydeos/fydeos-themes.git vendor/fydeos-themes
 
       - name: Apply FydeOS / ChromeOS style UI overlays
         run: |
-          
           wsl bash -c "cp -r vendor/fydeos-themes/icons/* frameworks/base/packages/SystemUI/res/"
           wsl bash -c "cp -r vendor/fydeos-themes/themes/* packages/apps/Settings/res/"
 
       - name: Download custom boot animation
         run: |
-          
           wsl mkdir -p vendor/bootanimation
           wsl wget -O vendor/bootanimation/bootanimation.zip https://xdaforums.com/attachments/bootanimation-zip.2986805/
 
       - name: Add boot animation to ROM
         run: |
-          
           wsl bash -c "mkdir -p out/target/product/$(grep 'PRODUCT_DEVICE' device/*/*/BoardConfig.mk | cut -d'=' -f2 | head -n1)/system/media"
           wsl bash -c "echo 'PRODUCT_COPY_FILES += vendor/bootanimation/bootanimation.zip:system/media/bootanimation.zip' >> device/*/*/device.mk"
 
       - name: Add Linux apps support (Crostini like)
         run: |
-          
           wsl git clone https://github.com/cros-legacy/cros-container.git external/cros-container
           wsl bash -c "echo 'PRODUCT_PACKAGES += cros-container' >> device/*/*/device.mk"
 
       - name: Enable windowed mode and multitasking features
         run: |
-          
           wsl bash -c "echo 'PRODUCT_PROPERTY_OVERRIDES += persist.debug.multi_window=true' >> device/*/*/device.mk"
           wsl bash -c "echo 'PRODUCT_PROPERTY_OVERRIDES += persist.sys.debug.multi_window=true' >> device/*/*/device.mk"
 
-      - name: Enable OTA updates
+      - name: Enable OTA updates and customize updater
         run: |
-          
           wsl git clone https://github.com/LineageOS/lineage_ota.git vendor/lineage_ota
           wsl bash -c "echo 'PRODUCT_PACKAGES += lineage_ota' >> device/*/*/device.mk"
+          wsl sed -i 's/Updater/KookyWolf Updater/g' vendor/lineage_ota/res/values/strings.xml || true
+          wsl sed -i 's/Your system is up to date/KookyWolf OS is howlin\' good and up to date!/g' vendor/lineage_ota/res/values/strings.xml || true
+          wsl sed -i 's/Checking for updates/Howlin\' for updates.../g' vendor/lineage_ota/res/values/strings.xml || true
 
       - name: Lunch and Build
         run: |
-          
-          wsl bash -c "source build/envsetup.sh && lunch aosp_x86_64-userdebug && make -j$(nproc --all)"
+          wsl bash -c "source build/envsetup.sh && lunch android_x86_64-userdebug && make -j1"
 
-      - name: Upload KookyWolf ROM
+      - name: Upload KookyWolf OS build
         uses: actions/upload-artifact@v4
         with:
-          name: KookyWolf-ROM
-          path: out/target/product/*/*.zip
+          name: KookyWolf-OS
+          path: out/target/product/*/*.iso
 
       - name: Upload OTA Update ZIP
         uses: actions/upload-artifact@v4
         with:
-          name: KookyWolf-ROM-OTA
-          path: out/target/product/*/KookyWolf-ROM-OTA-*.zip
+          name: KookyWolf-OS-OTA
+          path: out/target/product/*/KookyWolf-OS-OTA-*.zip
